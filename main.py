@@ -148,8 +148,6 @@ def cargarMaquinas():
 def cargarSimulacion():
     print('Cargar simulacion')
 
-def generarReporte():
-    print('Generar reporte')
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
