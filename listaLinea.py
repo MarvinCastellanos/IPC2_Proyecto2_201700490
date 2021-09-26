@@ -1,6 +1,6 @@
 from nodoLinea import Linea
 
-class listaLinea:
+class listaL:
     def __init__(self):
         self.head=None
 

@@ -1,7 +1,7 @@
 from nodoProducto import Producto
 from PyQt5.QtWidgets import QMessageBox
 
-class listaProducto:
+class listaP:
     def __init__(self):
         self.head=None
 
