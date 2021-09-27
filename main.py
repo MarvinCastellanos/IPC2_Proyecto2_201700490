@@ -237,11 +237,12 @@ def generaHTML(producto):
             
             html+='<tr><th>S'+str(n)+'</th>'
             html+='<th>'+str(aux2.getLinea())+'</th>'
-            html+='<th>'+aux2.getMensaje()+'</th><tr>'
+            html+='<th>'+aux2.getMensaje()+'</th></tr>'
             aux2=aux2.getSiguiente()
             continue
 
         if aux.getSiguiente()==None:
+            html+='<tr></tr>'
             break
         else:
             aux=aux.getSiguiente()
