@@ -1,5 +1,3 @@
-from nodoLinea import Linea
-
 class listaL:
     def __init__(self):
         self.head=None
@@ -24,5 +22,12 @@ class listaL:
             else:
                 aux=aux.getSiguiente()
 
-    def ensamblar(self,producto):
-        pass
+    def reset(self):
+        aux=self.head
+        while(True):
+            if aux==None:
+                break
+            else:
+                aux.setNPosicion(0)
+                aux.setTTiempo(0)
+                aux=aux.getSiguiente()

@@ -1,10 +1,11 @@
+from listaDestino import listaD
 class Linea:
     def __init__(self,tiempo,cantidad,nLinea):
         self.siguiente=None
         self.tiempo=tiempo
         self.cantidad=cantidad
         self.nLinea=nLinea
-        self.listaDestino=None
+        self.listaDestino=listaD()
         self.nPosicion=0
         self.tTiempo=0
     

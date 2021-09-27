@@ -1,6 +1,4 @@
-from nodoDestino import Destino
-
-class listaT:
+class listaD:
     def __init__(self):
         self.head=None
 
@@ -17,9 +15,18 @@ class listaT:
             elif aux.getSiguiente()==None:
                 aux.setSiguiente(nodo)
                 break
-            elif aux.getSiguiente().getNLinea()>=nodo.getNLinea():
-                nodo.setSiguiente(aux.getSiguiente())
-                aux.setSiguiente(nodo)
-                break
             else:
                 aux=aux.getSiguiente()
+    
+    def getTope(self):
+        return self.head
+
+    def pop(self):
+        if self.head==None:
+            print('lista Vacia')
+        aux=self.head
+        self.head=aux.getSiguiente()
+        aux=None
+    
+    def vaciar(self):
+        self.head=None

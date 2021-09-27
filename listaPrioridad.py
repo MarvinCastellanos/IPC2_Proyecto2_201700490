@@ -1,6 +1,6 @@
 from nodoPrioridad import Prioridad
 
-class listaPrioridad:
+class listaPriori:
     def __init__(self):
         self.head=None
 
@@ -17,9 +17,12 @@ class listaPrioridad:
             elif aux.getSiguiente()==None:
                 aux.setSiguiente(nodo)
                 break
-            elif aux.getSiguiente().getNLinea()>=nodo.getNLinea():
-                nodo.setSiguiente(aux.getSiguiente())
-                aux.setSiguiente(nodo)
-                break
             else:
                 aux=aux.getSiguiente()
+    
+    def pop(self):
+        if self.head==None:
+            print('lista Vacia')
+        aux=self.head
+        self.head=aux.getSiguiente()
+        aux=None

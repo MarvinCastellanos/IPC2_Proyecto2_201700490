@@ -10,14 +10,22 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox,QFileDialog
 import xml.etree.ElementTree as ET
+import re
+import graphviz
 
 from nodoLinea import Linea
 from nodoProducto import Producto
+from nodoPrioridad import Prioridad
+from nodoDestino import Destino
 from listaLinea import listaL
 from listaProducto import listaP
+from listaPrioridad import listaPriori
+from listaDestino import listaD
 
 lineaMaquinas=listaL()
 productosDisponibles=listaP()
+
+time=0
 
 
 class Ui_MainWindow(object):
@@ -109,6 +117,14 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuAyuda.menuAction())
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(0, 360, 271, 21))
+        self.label_3.setFont(font)
+        self.label_3.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_3.setObjectName("label_3")
+        self.lcdNumber = QtWidgets.QLCDNumber(self.centralwidget)
+        self.lcdNumber.setGeometry(QtCore.QRect(70, 380, 111, 61))
+        self.lcdNumber.setObjectName("lcdNumber")
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -119,8 +135,8 @@ class Ui_MainWindow(object):
         self.actionCargar_Simulaci_n.triggered.connect(lambda:cargarSimulacion(QFileDialog.getOpenFileName()))
         self.actionGenerar_reporte.triggered.connect(generarReporte)
         self.pushButtonActualiza.clicked.connect(self.rellenaComboBox)
-
-    
+        self.pushButton.clicked.connect(self.simulaProducto)
+        self.actionGenerar_reporte.triggered.connect(self.Graphviz)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -152,8 +168,16 @@ class Ui_MainWindow(object):
         self.actionInformaci_n_de_estudiante.setStatusTip(_translate("MainWindow", "Muestra información de estudiante"))
         self.actionGenerar_reporte.setText(_translate("MainWindow", "Generar reporte"))
         self.actionGenerar_reporte.setStatusTip(_translate("MainWindow", "Genera Reportes"))
+        self.label_3.setText(_translate("MainWindow", "Tiempo de ensamblaje"))
 
-    
+    def Graphviz(self):
+        generaGraphviz(productosDisponibles.buscar(self.comboBox.currentText()))
+
+    def simulaProducto(self):
+        global time
+        t=ensamblar(productosDisponibles.buscar(self.comboBox.currentText())) 
+        self.lcdNumber.setProperty("value", t)
+
     def rellenaComboBox(self):
         aux=productosDisponibles.getHead()
         self.comboBox.clear()
@@ -173,9 +197,79 @@ class Ui_MainWindow(object):
         msg.setIcon(QMessageBox.Information)
         x=msg.exec_()
     
+
+def generaGraphviz(producto):
+
+    pass
+
+def ensamblar(producto):
+    lineas=re.findall('L[0-9]+p?C[0-9]+',producto.getListaPrioridad())
+    LPrioridad=listaPriori()
+    for linea in lineas:
+        L =re.search('L[0-9]+',linea).group()
+        L =re.search('[0-9]+',L).group()
+
+        C=re.search('C[0-9]+',linea).group()
+        C=re.search('[0-9]+',C).group()
+
+        LPrioridad.agregaComponente(Prioridad(L,C))
+
+    #rellena listas de destino de cada linea de ensamblaje
+    auxL=lineaMaquinas.getHead() #auxiliar de lineas
+    while(True):  
+        auxP=LPrioridad.getHead() #auxiliar de lista de prioridad
+        while(True):
+            if int(auxP.getLinea())==int(auxL.getNLinea()):
+                auxL.getListaDestino().agregaComponente(Destino(int(auxP.getComponente())))
+                #print('linea '+auxP.getLinea()+', componente '+auxP.getComponente())
+            
+            if auxP.getSiguiente()==None:
+                break
+            else:
+                auxP=auxP.getSiguiente()
+        
+        if auxL.getSiguiente()==None:
+            break
+        else:
+            auxL=auxL.getSiguiente()
+    #print('agregados')
+
+    time=0
+    auxL=lineaMaquinas.getHead()
+    while(True):
+        #print(LPrioridad.getHead().getLinea())
+        if auxL==None:
+            auxL=lineaMaquinas.getHead()
+            time+=1
+        if LPrioridad.getHead()==None:
+            break
+        elif auxL.getListaDestino().getHead()==None:
+            #no hace nada
+            pass
+        elif int(auxL.getListaDestino().getHead().getComponente())==int(auxL.getNPosicion()):
+            if int(auxL.getNLinea())==int(LPrioridad.getHead().getLinea()):
+                #ensamblar
+                if int(auxL.getTiempo()) == int(auxL.getTTiempo()):
+                    #se ensambla
+                    auxL.setTiempo(auxL.getTTiempo()+1)
+                else:
+                    LPrioridad.pop()
+                    auxL.getListaDestino().pop()
+            else:
+                #no hacer nada
+                pass
+        elif int(auxL.getListaDestino().getHead().getComponente())<int(auxL.getNPosicion()):
+            #se mueve hacia atras
+            auxL.setNPosicion(auxL.getNPosicion()-1)
+            #print(auxL.getNPosicion())
+        elif int(auxL.getListaDestino().getHead().getComponente())>int(auxL.getNPosicion()):
+            #se mueve hacia adelante
+            auxL.setNPosicion(auxL.getNPosicion()+1)
+            #print(auxL.getNPosicion())
+        auxL=auxL.getSiguiente()
+    lineaMaquinas.reset()
+    return(time)
     
-
-
 def cargarMaquinas(direccion):
     tree=ET.parse(direccion[0])
     root=tree.getroot()
@@ -198,7 +292,9 @@ def cargarMaquinas(direccion):
             tiempo= tiempo.replace('\n',"")
             tiempo= tiempo.replace(' ',"")
 
-            lineaMaquinas.agregaLinea(Linea(tiempo,cantidad,numero))
+            #print(numero)
+
+            lineaMaquinas.agregaLinea(Linea(int(tiempo),int(cantidad),int(numero)))
         mensajeDatosGuardados('lineas de produccion')
 
     for productos in root.findall('ListadoProductos'):
@@ -217,10 +313,6 @@ def cargarMaquinas(direccion):
             productosDisponibles.agregaProducto(Producto(nombre,elaboracion))
         mensajeDatosGuardados('productos')
 
-            
-
-            
-
 def mensajeDatosGuardados(mensaje):
     msg=QMessageBox()
     msg.setWindowTitle('Datos guardados')
@@ -232,7 +324,8 @@ def cargarSimulacion(direccion):
     print(direccion)
 
 def generarReporte(self):
-    print('generarReporte')
+    pass
+    #print('generarReporte')
 
 if __name__ == "__main__":
     import sys

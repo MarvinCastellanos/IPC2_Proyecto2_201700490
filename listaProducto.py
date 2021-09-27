@@ -21,13 +21,6 @@ class listaP:
             else:
                 aux=aux.getSiguiente()
 
-    def mensaje(self):
-        msg=QMessageBox()
-        msg.setWindowTitle('Error')
-        msg.setText('El producto no ha sido encontrado')
-        msg.setIcon(QMessageBox.Critical)
-        x=msg.exec_()
-
     def buscar(self,nombre):
         aux=self.head
 
@@ -35,7 +28,6 @@ class listaP:
             if aux.getNombre()==nombre:
                 return aux
             elif aux.getSiguiente()==None:
-                self.mensaje()
                 break
             else:
                 aux=aux.getSiguiente()
