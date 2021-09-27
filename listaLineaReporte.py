@@ -1,13 +1,11 @@
-from nodoReporte import Reporte
-
-class listaT:
+class listaLR:
     def __init__(self):
         self.head=None
 
     def getHead(self):
         return self.head
-    
-    def agregaSegundo(self,nodo):
+
+    def agregaLinea(self,nodo):
         aux=self.head
 
         while(True):

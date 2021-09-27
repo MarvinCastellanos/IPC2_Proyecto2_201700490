@@ -1,0 +1,23 @@
+body{
+    background: rgb(14,207,0);
+    background: linear-gradient(0deg, rgba(14,207,0,0.41220238095238093) 0%, rgba(103,221,255,0.6474964985994398) 100%);
+}
+table{
+    width:100%
+}
+tr{
+    text-align: left;
+    border: 1px solid black;
+    background: rgb(0,42,207);
+    background: linear-gradient(0deg, rgba(0,42,207,0.2805497198879552) 0%, rgba(103,221,255,0.34217436974789917) 100%);
+}
+
+.gano{
+    background-color: blue;
+}
+.perdio{
+    background-color: red;
+}
+h1{
+    text-align: center;
+}

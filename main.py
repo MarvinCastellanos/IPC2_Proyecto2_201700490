@@ -12,19 +12,26 @@ from PyQt5.QtWidgets import QMessageBox,QFileDialog
 import xml.etree.ElementTree as ET
 import re
 import graphviz
+import codecs
+import webbrowser
 
 from nodoLinea import Linea
 from nodoProducto import Producto
 from nodoPrioridad import Prioridad
 from nodoDestino import Destino
+from nodoLineaReporte import LineaR
+from nodoReporte import Reporte
+
 from listaLinea import listaL
 from listaProducto import listaP
 from listaPrioridad import listaPriori
 from listaDestino import listaD
+from listaLineaReporte import listaLR
+from listaReporte import listaT
 
 lineaMaquinas=listaL()
 productosDisponibles=listaP()
-
+TablaReporte=listaT()
 time=0
 
 
@@ -136,7 +143,7 @@ class Ui_MainWindow(object):
         self.actionGenerar_reporte.triggered.connect(generarReporte)
         self.pushButtonActualiza.clicked.connect(self.rellenaComboBox)
         self.pushButton.clicked.connect(self.simulaProducto)
-        self.actionGenerar_reporte.triggered.connect(self.Graphviz)
+        self.actionGenerar_reporte.triggered.connect(self.reportes)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -170,8 +177,11 @@ class Ui_MainWindow(object):
         self.actionGenerar_reporte.setStatusTip(_translate("MainWindow", "Genera Reportes"))
         self.label_3.setText(_translate("MainWindow", "Tiempo de ensamblaje"))
 
-    def Graphviz(self):
+    def reportes(self):
         generaGraphviz(productosDisponibles.buscar(self.comboBox.currentText()))
+        generaHTML(productosDisponibles.buscar(self.comboBox.currentText()))
+
+
 
     def simulaProducto(self):
         global time
@@ -197,6 +207,55 @@ class Ui_MainWindow(object):
         msg.setIcon(QMessageBox.Information)
         x=msg.exec_()
     
+def generaHTML(producto):
+    global TablaReporte
+    html='''
+    
+    <!DOCTYPE html>
+ <html lang="es">
+ <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Reportes</title>
+ </head>
+ <body>
+    <h1>'''
+    html+=producto.getNombre()+'</h1><table>'
+    html+='''<tr><th>Segundo</th><th>Linea</th><th>Accion<tr></th>'''
+    
+    aux=TablaReporte.getHead()
+    n=1
+    while(True):
+        aux2=aux.getListaLineas().getHead()
+        while(True):
+            
+            if aux2==None:
+                #aux2=aux.getListaLineas().getHead()
+                break
+            
+            html+='<tr><th>S'+str(n)+'</th>'
+            html+='<th>'+str(aux2.getLinea())+'</th>'
+            html+='<th>'+aux2.getMensaje()+'</th><tr>'
+            aux2=aux2.getSiguiente()
+            continue
+
+        if aux.getSiguiente()==None:
+            break
+        else:
+            aux=aux.getSiguiente()
+            n+=1
+            continue
+    n+=1
+    html+='</tr></table></body></html>'
+            
+    file=codecs.open("Reporte.html","w",'utf-8')
+    file.write(html)
+    file.close()
+    webbrowser.open_new_tab('Reporte.html')
+
+
 
 def generaGraphviz(producto):
 
@@ -228,6 +287,10 @@ def generaGraphviz(producto):
     dot.render('grafica', view=True)
 
 def ensamblar(producto):
+    global TablaReporte
+
+    TablaReporte=listaT()
+
     lineas=re.findall('L[0-9]+p?C[0-9]+',producto.getListaPrioridad())
     LPrioridad=listaPriori()
     for linea in lineas:
@@ -262,36 +325,41 @@ def ensamblar(producto):
     time=0
     auxL=lineaMaquinas.getHead()
     while(True):
-        #print(LPrioridad.getHead().getLinea())
+        ListaReporte=listaLR()
         if auxL==None:
             auxL=lineaMaquinas.getHead()
             time+=1
         if LPrioridad.getHead()==None:
             break
         elif auxL.getListaDestino().getHead()==None:
-            #no hace nada
+            ListaReporte.agregaLinea(LineaR(auxL.getNLinea(),'No hace nada'))
             pass
         elif int(auxL.getListaDestino().getHead().getComponente())==int(auxL.getNPosicion()):
             if int(auxL.getNLinea())==int(LPrioridad.getHead().getLinea()):
                 #ensamblar
                 if int(auxL.getTiempo()) == int(auxL.getTTiempo()):
                     #se ensambla
+                    ListaReporte.agregaLinea(LineaR(auxL.getNLinea(),'Ensambla'))
                     auxL.setTiempo(auxL.getTTiempo()+1)
                 else:
                     LPrioridad.pop()
                     auxL.getListaDestino().pop()
             else:
                 #no hacer nada
+                ListaReporte.agregaLinea(LineaR(auxL.getNLinea(),'No hace nada'))
                 pass
         elif int(auxL.getListaDestino().getHead().getComponente())<int(auxL.getNPosicion()):
             #se mueve hacia atras
             auxL.setNPosicion(auxL.getNPosicion()-1)
+            ListaReporte.agregaLinea(LineaR(auxL.getNLinea(),'Se mueve hacia atras'))
             #print(auxL.getNPosicion())
         elif int(auxL.getListaDestino().getHead().getComponente())>int(auxL.getNPosicion()):
             #se mueve hacia adelante
             auxL.setNPosicion(auxL.getNPosicion()+1)
+            ListaReporte.agregaLinea(LineaR(auxL.getNLinea(),'Se mueve hacia adelante'))
             #print(auxL.getNPosicion())
         auxL=auxL.getSiguiente()
+        TablaReporte.agregaSegundo(Reporte(ListaReporte))
     lineaMaquinas.reset()
     return(time)
     
