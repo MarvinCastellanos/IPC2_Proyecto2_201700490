@@ -338,10 +338,10 @@ def ensamblar(producto):
         elif int(auxL.getListaDestino().getHead().getComponente())==int(auxL.getNPosicion()):
             if int(auxL.getNLinea())==int(LPrioridad.getHead().getLinea()):
                 #ensamblar
-                if int(auxL.getTiempo()) == int(auxL.getTTiempo()):
+                if int(auxL.getTiempo()) is not int(auxL.getTTiempo()):
                     #se ensambla
                     ListaReporte.agregaLinea(LineaR(auxL.getNLinea(),'Ensambla'))
-                    auxL.setTiempo(auxL.getTTiempo()+1)
+                    auxL.setTTiempo(auxL.getTTiempo()+1)
                 else:
                     LPrioridad.pop()
                     auxL.getListaDestino().pop()
