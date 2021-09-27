@@ -200,7 +200,32 @@ class Ui_MainWindow(object):
 
 def generaGraphviz(producto):
 
-    pass
+    dot = graphviz.Digraph(comment='The Round Table')
+    lineas=re.findall('L[0-9]+p?C[0-9]+',producto.getListaPrioridad())
+    LPrioridad=listaPriori()
+    for linea in lineas:
+        L =re.search('L[0-9]+',linea).group()
+        L =re.search('[0-9]+',L).group()
+
+        C=re.search('C[0-9]+',linea).group()
+        C=re.search('[0-9]+',C).group()
+
+        LPrioridad.agregaComponente(Prioridad(L,C))
+
+    aux=LPrioridad.getHead()
+    n=0
+    while (True):
+        txt='L'+aux.getLinea()+'C'+aux.getComponente()
+        nactual=str(n)
+        nsiguiente=str(n+1)
+        dot.node(nactual,txt)
+        if aux.getSiguiente()==None:
+            break
+        else:
+            dot.edge(nactual, nsiguiente, constraint='false')
+            aux=aux.getSiguiente()
+            n+=1
+    dot.render('grafica', view=True)
 
 def ensamblar(producto):
     lineas=re.findall('L[0-9]+p?C[0-9]+',producto.getListaPrioridad())
